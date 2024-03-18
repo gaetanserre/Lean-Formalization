@@ -1,6 +1,6 @@
 ## Lean Formalization of Cayley's Graph
 
-This directory contains the formalization of the representation of finite groups as graphs.
+This directory contains the formalization of the representation of finite groups as Cayley's graphs.
 
 The formalizations are done in the following files:
 - `CayleyGraph/finGroup.lean`: Definition of finite groups, formulas (to represent the edges), generative families, free families and free groups.
