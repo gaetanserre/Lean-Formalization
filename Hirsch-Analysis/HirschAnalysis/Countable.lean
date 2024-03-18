@@ -158,9 +158,9 @@ lemma N2_countable : countable (univ : Set (ℕ × ℕ)) := by
   exact countable_trans.mpr ⟨ℕ, A, subset_of_countable_set A (λ _ _ ↦ trivial) (N_countable), f, f_surj⟩
 
 /--
-We use a different definition of a set being countable to match the book as much as possible. For completeness, we show that our definition is equivalent to Mathlib's. It corresponds to Corollary 1.5.
+We use a definition of a set being countable different to Mathlib's to match the book as much as possible. For completeness, we show that our definition is equivalent to Mathlib's. It corresponds to Corollary 1.5.
 -/
-lemma countable_iff {u : Type} {E : Set u} [∀ (e : u), Decidable (e ∈ E)] (hE : Set.Nonempty E) : countable E ↔ Set.Countable E := by
+lemma countable_iff {u : Type} {E : Set u} (hE : Set.Nonempty E) : countable E ↔ Set.Countable E := by
   let s_t := {e : u // e ∈ E}
   constructor
   · intro h
@@ -273,7 +273,6 @@ lemma Q_countable : countable (univ : Set ℚ) := by
     rwa [eq_set] at univ_countable
   }
 
-
   have countable_A := subset_of_countable_set A (show A ⊆ univ by exact λ _ _ ↦ trivial) countable_prod
 
   exact countable_trans.mpr ⟨ℤ×ℕ, A, countable_A, f, f_surj⟩
@@ -307,56 +306,6 @@ lemma subset_of_uncountable_set {u : Type} {E A : Set u} (h : A ⊆ E) (uncounta
 
 
 ------------------------------FORMALIZATION-----------------------------------
-
-/--
-For any real number x and any positive number ε, it exists a rational q such that |x - q| < ε.
--/
-lemma Q_dense (x : ℝ) : ∀ ε > 0, ∃ (q : ℚ), |x - q| < ε :=
-by
-  intro ε ε_pos
-  have h : x < x + ε := by linarith
-  obtain ⟨q, hql, hqr⟩ := exists_rat_btwn h
-  use q
-  have x_minus_q_neg : x - q < 0 := by linarith
-  have abs_eq_neg : |x - q| = -(x - q) := by {
-    rw [abs_eq_neg_self]
-    linarith
-  }
-  rw [abs_eq_neg, show -(x - q) = q - x by ring]
-  linarith
-
-/--
-For any real number x, it exists a sequence of rational that tends to x.
--/
-example (x : ℝ) : ∃ (u : ℕ → ℚ), Tendsto (λ n ↦ ((u n) : ℝ)) atTop (𝓝 x) :=
-by
-  let A := λ (n : ℕ) ↦ {q : ℚ | |x - q| < (1 / (n+1))}
-  have non_empty : ∀ n,  Set.Nonempty (A n) := by {
-    intro n
-    obtain ⟨q, hq⟩ : ∃ (q : ℚ), |x - q| < (1 / (n+1)) := Q_dense x (1 / (n+1)) (Nat.one_div_pos_of_nat)
-    use q, hq
-  }
-
-  let u := λ (n : ℕ) ↦ Set.Nonempty.some (non_empty n)
-  use u
-  rw [Metric.tendsto_atTop']
-  have dst : ∀ n, dist ((u n) : ℝ) x = |x - ((u n) : ℝ)| := λ _ ↦ Metric.mem_sphere'.mp rfl
-  simp_rw [dst]
-  intro ε ε_pos
-  obtain ⟨N, hn⟩ : ∃ (N : ℕ), 1 / (N + 1) < ε := by {
-    use (⌈1 / ε⌉₊)
-    have R_pos: 0 < (⌈1 / ε⌉₊ + 1 : ℝ) := Nat.cast_add_one_pos ⌈1 / ε⌉₊
-    rw [show 1 / (⌈1 / ε⌉₊ + 1 : ℝ) = (⌈1 / ε⌉₊ + 1 : ℝ)⁻¹ by exact one_div (⌈1 / ε⌉₊ + 1 : ℝ)]
-    rw [inv_lt R_pos ε_pos, show ε⁻¹ = 1 / ε by exact inv_eq_one_div ε]
-    calc 1 / ε <= (⌈1 / ε⌉₊ : ℝ) := Nat.le_ceil (1 / ε)
-    _ < (⌈1 / ε⌉₊ + 1 : ℝ) := lt_add_one (⌈1 / ε⌉₊ : ℝ)
-  }
-  use N
-  intro n N_ltn
-  calc |x - ((u n) : ℝ)| < 1 / (n + 1 : ℝ) := Nonempty.some_mem (non_empty n)
-  _ < 1 / (N + 1 : ℝ) := Nat.one_div_lt_one_div N_ltn
-  _ < ε := hn
-
 /--
 The power set of ℕ is uncountable. (Example 4 p.3)
 -/
@@ -434,8 +383,60 @@ by
   }
   exact uncountable_trans zero_one powerset_N_uncountable ⟨f, f_surj⟩
 
+/--
+The set of all sequences to ℕ is uncountable.
+-/
 example : ¬ countable (univ : Set (ℕ → ℕ)) :=
   subset_of_uncountable_set (λ _ _ ↦ trivial) zero_one_uncountable
+
+/--
+For any real number x and any positive number ε, it exists a rational q such that |x - q| < ε.
+-/
+lemma Q_dense (x : ℝ) : ∀ ε > 0, ∃ (q : ℚ), |x - q| < ε :=
+by
+  intro ε ε_pos
+  have h : x < x + ε := by linarith
+  obtain ⟨q, hql, hqr⟩ := exists_rat_btwn h
+  use q
+  have x_minus_q_neg : x - q < 0 := by linarith
+  have abs_eq_neg : |x - q| = -(x - q) := by {
+    rw [abs_eq_neg_self]
+    linarith
+  }
+  rw [abs_eq_neg, show -(x - q) = q - x by ring]
+  linarith
+
+/--
+For any real number x, it exists a sequence of rational that tends to x.
+-/
+example (x : ℝ) : ∃ (u : ℕ → ℚ), Tendsto (λ n ↦ ((u n) : ℝ)) atTop (𝓝 x) :=
+by
+  let A := λ (n : ℕ) ↦ {q : ℚ | |x - q| < (1 / (n+1))}
+  have non_empty : ∀ n,  Set.Nonempty (A n) := by {
+    intro n
+    obtain ⟨q, hq⟩ : ∃ (q : ℚ), |x - q| < (1 / (n+1)) := Q_dense x (1 / (n+1)) (Nat.one_div_pos_of_nat)
+    use q, hq
+  }
+
+  let u := λ (n : ℕ) ↦ Set.Nonempty.some (non_empty n)
+  use u
+  rw [Metric.tendsto_atTop']
+  have dst : ∀ n, dist ((u n) : ℝ) x = |x - ((u n) : ℝ)| := λ _ ↦ Metric.mem_sphere'.mp rfl
+  simp_rw [dst]
+  intro ε ε_pos
+  obtain ⟨N, hn⟩ : ∃ (N : ℕ), 1 / (N + 1) < ε := by {
+    use (⌈1 / ε⌉₊)
+    have R_pos: 0 < (⌈1 / ε⌉₊ + 1 : ℝ) := Nat.cast_add_one_pos ⌈1 / ε⌉₊
+    rw [show 1 / (⌈1 / ε⌉₊ + 1 : ℝ) = (⌈1 / ε⌉₊ + 1 : ℝ)⁻¹ by exact one_div (⌈1 / ε⌉₊ + 1 : ℝ)]
+    rw [inv_lt R_pos ε_pos, show ε⁻¹ = 1 / ε by exact inv_eq_one_div ε]
+    calc 1 / ε <= (⌈1 / ε⌉₊ : ℝ) := Nat.le_ceil (1 / ε)
+    _ < (⌈1 / ε⌉₊ + 1 : ℝ) := lt_add_one (⌈1 / ε⌉₊ : ℝ)
+  }
+  use N
+  intro n N_ltn
+  calc |x - ((u n) : ℝ)| < 1 / (n + 1 : ℝ) := Nonempty.some_mem (non_empty n)
+  _ < 1 / (N + 1 : ℝ) := Nat.one_div_lt_one_div N_ltn
+  _ < ε := hn
 
 /--
 Let A be a family of disjoint, non-empty, open sets of ℝ. Then A is countable. (Example 9 p.4)
