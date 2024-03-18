@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class="alectryon-standalone"><head><title>FinGroup.lean</title><meta charset="utf-8"><meta content="Alectryon" name="generator"><meta name="viewport" content="width=device-width, initial-scale=1"><link href="alectryon.css" rel="stylesheet"><link href="pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/IBM-type/0.5.4/css/ibm-type.min.css" integrity="sha512-sky5cf9Ts6FY1kstGOBHSybfKqdHR41M0Ldb0BjNiv3ifltoQIsg0zIaQ+wwdwgQ0w9vKFW7Js50lxH9vqNSSw==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/firacode/5.2.0/fira_code.min.css" integrity="sha512-MbysAYimH1hH2xYzkkMHB6MqxBqfP0megxsCLknbYqHVwXTCg9IqHbk+ZP/vnhO8UEW6PaXAkKe2vQ+SWACxxA==" crossorigin="anonymous" /><script src="alectryon.js"></script></head><body><article class="alectryon-root alectryon-windowed"><div class="alectryon-banner">Built with <a href="https://github.com/cpitclaudel/alectryon/">Alectryon</a>, running Lean4 v4.7.0. Bubbles (<span class="alectryon-bubble"></span>) indicate interactive fragments: hover for details, tap to reveal contents. Use <kbd>Ctrl+↑</kbd> <kbd>Ctrl+↓</kbd> to navigate, <kbd>Ctrl+🖱️</kbd> to focus. On Mac, use <kbd>⌘</kbd> instead of <kbd>Ctrl</kbd>.</div><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="kn">import</span> Mathlib
+<span class="kn">open</span> Classical
+
+<span class="kd">set_option</span> maxHeartbeats <span class="mi">600000</span>
+
+<span class="kd">class</span> FinGroup (G : <span class="kt">Type</span><span class="bp">*</span>) [Fintype G] <span class="kd">extends</span> Group G
+
+<span class="kd">structure</span> Formula (G : <span class="kt">Type</span><span class="bp">*</span>) [Fintype G] [FinGroup G] (X : Set G) where
+  elems : List G
+  elems_in_X : <span class="bp">∀</span> e <span class="bp">∈</span> elems, e <span class="bp">∈</span> X <span class="bp">∨</span> e<span class="bp">⁻¹</span> <span class="bp">∈</span> X
+
+
+<span class="kn">namespace</span> Formula
+<span class="kd">variable</span> {G : <span class="kt">Type</span><span class="bp">*</span>} [Fintype G] [FinGroup G] {X : Set G} (F : Formula G X)
+<span class="kd">def</span> val := F.elems.prod
+<span class="kd">def</span> length := F.elems.length
+<span class="kd">def</span> get (i : Fin (F.length)) := F.elems.get i
+<span class="kd">def</span> irreducible :=
+  <span class="k">if</span> h : <span class="mi">1</span> <span class="bp">&lt;</span> F.length <span class="k">then</span>
+    <span class="bp">∀</span> (i : Fin F.length), (F.get i) <span class="bp">*</span> (F.get (i <span class="bp">+</span> {val:=<span class="mi">1</span>, isLt:=h})) <span class="bp">≠</span> <span class="mi">1</span>
+  <span class="k">else</span> <span class="k">if</span> h : F.length <span class="bp">=</span> <span class="mi">1</span> <span class="k">then</span> F.get {val:=<span class="mi">0</span>, isLt:=</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk0" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk0"><span class="kd">by</span></label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">Goals accomplished<span class="bp">!</span> <span class="bp">🐙</span></div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk1" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk1"> </label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>G</var><span class="hyp-type"><b>: </b><span><span class="kt">Type</span> u_1</span></span></span><br><span><var>inst✝¹</var><span class="hyp-type"><b>: </b><span>Fintype G</span></span></span><br><span><var>inst✝</var><span class="hyp-type"><b>: </b><span>FinGroup G</span></span></span><br><span><var>X</var><span class="hyp-type"><b>: </b><span>Set G</span></span></span><br><span><var>F</var><span class="hyp-type"><b>: </b><span>Formula G X</span></span></span><br><span><var>h✝</var><span class="hyp-type"><b>: </b><span><span class="bp">¬</span><span class="mi">1</span> <span class="bp">&lt;</span> length F</span></span></span><br><span><var>h</var><span class="hyp-type"><b>: </b><span>length F <span class="bp">=</span> <span class="mi">1</span></span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion"><span class="mi">0</span> <span class="bp">&lt;</span> length F</div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk2" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk2">rw[</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>G</var><span class="hyp-type"><b>: </b><span><span class="kt">Type</span> u_1</span></span></span><br><span><var>inst✝¹</var><span class="hyp-type"><b>: </b><span>Fintype G</span></span></span><br><span><var>inst✝</var><span class="hyp-type"><b>: </b><span>FinGroup G</span></span></span><br><span><var>X</var><span class="hyp-type"><b>: </b><span>Set G</span></span></span><br><span><var>F</var><span class="hyp-type"><b>: </b><span>Formula G X</span></span></span><br><span><var>h✝</var><span class="hyp-type"><b>: </b><span><span class="bp">¬</span><span class="mi">1</span> <span class="bp">&lt;</span> length F</span></span></span><br><span><var>h</var><span class="hyp-type"><b>: </b><span>length F <span class="bp">=</span> <span class="mi">1</span></span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion"><span class="mi">0</span> <span class="bp">&lt;</span> length F</div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk3" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk3">h</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>G</var><span class="hyp-type"><b>: </b><span><span class="kt">Type</span> u_1</span></span></span><br><span><var>inst✝¹</var><span class="hyp-type"><b>: </b><span>Fintype G</span></span></span><br><span><var>inst✝</var><span class="hyp-type"><b>: </b><span>FinGroup G</span></span></span><br><span><var>X</var><span class="hyp-type"><b>: </b><span>Set G</span></span></span><br><span><var>F</var><span class="hyp-type"><b>: </b><span>Formula G X</span></span></span><br><span><var>h✝</var><span class="hyp-type"><b>: </b><span><span class="bp">¬</span><span class="mi">1</span> <span class="bp">&lt;</span> length F</span></span></span><br><span><var>h</var><span class="hyp-type"><b>: </b><span>length F <span class="bp">=</span> <span class="mi">1</span></span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion"><span class="mi">0</span> <span class="bp">&lt;</span> <span class="mi">1</span></div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk4" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk4">]</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>G</var><span class="hyp-type"><b>: </b><span><span class="kt">Type</span> u_1</span></span></span><br><span><var>inst✝¹</var><span class="hyp-type"><b>: </b><span>Fintype G</span></span></span><br><span><var>inst✝</var><span class="hyp-type"><b>: </b><span>FinGroup G</span></span></span><br><span><var>X</var><span class="hyp-type"><b>: </b><span>Set G</span></span></span><br><span><var>F</var><span class="hyp-type"><b>: </b><span>Formula G X</span></span></span><br><span><var>h✝</var><span class="hyp-type"><b>: </b><span><span class="bp">¬</span><span class="mi">1</span> <span class="bp">&lt;</span> length F</span></span></span><br><span><var>h</var><span class="hyp-type"><b>: </b><span>length F <span class="bp">=</span> <span class="mi">1</span></span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion"><span class="mi">0</span> <span class="bp">&lt;</span> <span class="mi">1</span></div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk5" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk5"><span class="bp">;</span></label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>G</var><span class="hyp-type"><b>: </b><span><span class="kt">Type</span> u_1</span></span></span><br><span><var>inst✝¹</var><span class="hyp-type"><b>: </b><span>Fintype G</span></span></span><br><span><var>inst✝</var><span class="hyp-type"><b>: </b><span>FinGroup G</span></span></span><br><span><var>X</var><span class="hyp-type"><b>: </b><span>Set G</span></span></span><br><span><var>F</var><span class="hyp-type"><b>: </b><span>Formula G X</span></span></span><br><span><var>h✝</var><span class="hyp-type"><b>: </b><span><span class="bp">¬</span><span class="mi">1</span> <span class="bp">&lt;</span> length F</span></span></span><br><span><var>h</var><span class="hyp-type"><b>: </b><span>length F <span class="bp">=</span> <span class="mi">1</span></span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion"><span class="mi">0</span> <span class="bp">&lt;</span> <span class="mi">1</span></div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk6" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk6"> </label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>G</var><span class="hyp-type"><b>: </b><span><span class="kt">Type</span> u_1</span></span></span><br><span><var>inst✝¹</var><span class="hyp-type"><b>: </b><span>Fintype G</span></span></span><br><span><var>inst✝</var><span class="hyp-type"><b>: </b><span>FinGroup G</span></span></span><br><span><var>X</var><span class="hyp-type"><b>: </b><span>Set G</span></span></span><br><span><var>F</var><span class="hyp-type"><b>: </b><span>Formula G X</span></span></span><br><span><var>h✝</var><span class="hyp-type"><b>: </b><span><span class="bp">¬</span><span class="mi">1</span> <span class="bp">&lt;</span> length F</span></span></span><br><span><var>h</var><span class="hyp-type"><b>: </b><span>length F <span class="bp">=</span> <span class="mi">1</span></span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion"><span class="mi">0</span> <span class="bp">&lt;</span> length F</div></blockquote></div></div></small></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="FinGroup-lean-chk7" style="display: none" type="checkbox"><label class="alectryon-input" for="FinGroup-lean-chk7">exact Nat.zero_lt_one</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">Goals accomplished<span class="bp">!</span> <span class="bp">🐙</span></div></blockquote></div></div></small></span><span class="alectryon-wsp">} <span class="bp">≠</span> <span class="mi">1</span>
+  <span class="k">else</span> F.elems <span class="bp">=</span> []
+<span class="kd">end</span> Formula
+
+<span class="kd">variable</span> {G : <span class="kt">Type</span><span class="bp">*</span>} [Fintype G] [FinGroup G] [Inhabited G]
+
+<span class="kd">def</span> generative_family (X : Set G) := <span class="bp">∀</span> (g : G), <span class="bp">∃</span> (F : Formula G X), F.val <span class="bp">=</span> g
+
+<span class="kd">def</span> free_family (X : Set G) := <span class="bp">∀</span> (F : Formula G X), (h : <span class="mi">0</span> <span class="bp">&lt;</span> F.length) <span class="bp">→</span> F.irreducible <span class="bp">→</span> F.val <span class="bp">≠</span> <span class="mi">1</span>
+
+<span class="kd">def</span> is_free_group (G : <span class="kt">Type</span><span class="bp">*</span>) [Fintype G] [FinGroup G] [Inhabited G] := <span class="bp">∃</span> (X : Set G), generative_family X <span class="bp">∧</span> free_family X
+
+
+<span class="c">/-</span><span class="cm"> lemma empty_formula_irreducible {F : Formula G X} (hF : F.elems = []) : F.irreducible := by</span>
+<span class="cm">  have Fl : F.length = 0 := List.length_eq_zero.mpr hF</span>
+<span class="cm">  unfold Formula.irreducible</span>
+<span class="cm">  split</span>
+<span class="cm">  · linarith</span>
+<span class="cm">  split</span>
+<span class="cm">  · linarith</span>
+<span class="cm">  assumption</span>
+
+<span class="cm">lemma single_formula_irreducible {F : Formula G X} (hF : ∃ g, g ≠ 1 ∧ F.elems = [g]) : F.irreducible := by</span>
+<span class="cm">  rcases hF with ⟨g, g_neq_id, F_elem⟩</span>
+
+<span class="cm">  have Fl : F.length = 1 := by unfold Formula.length; rw [F_elem]; rfl</span>
+<span class="cm">  unfold Formula.irreducible</span>
+<span class="cm">  split</span>
+<span class="cm">  · linarith</span>
+<span class="cm">  have F_get_eq_g : F.get {val:=0, isLt:=by rw[Fl]; exact Nat.zero_lt_one} = g := by {</span>
+<span class="cm">    unfold Formula.get</span>
+<span class="cm">    let i : Fin F.length := {val:=0, isLt:=by rw[Fl]; exact Nat.zero_lt_one}</span>
+<span class="cm">    have isLt : ↑i &lt; F.elems.length := by</span>
+<span class="cm">      unfold Formula.length at Fl</span>
+<span class="cm">      rw [Fl]</span>
+<span class="cm">      exact zero_lt_one</span>
+<span class="cm">    rw [←List.getI_eq_get F.elems isLt, congrFun (congrArg List.getI F_elem) i.val]</span>
+<span class="cm">    rw [show ↑i = 0 by rfl]</span>
+<span class="cm">    rfl</span>
+<span class="cm">  }</span>
+<span class="cm">  rwa [F_get_eq_g]</span>
+
+<span class="cm">theorem toIrreducible (F : Formula G X) : ∃ (F&#39; : Formula G X), F&#39;.irreducible ∧ F&#39;.val = F.val := by</span>
+<span class="cm">  --by_contra h; push_neg at h</span>
+<span class="cm">  by_cases hFl_0 : F.length = 0</span>
+<span class="cm">  · have F_empty : F.elems = [] := (List.length_eq_zero.mp) hFl_0</span>
+<span class="cm">    exact ⟨F, empty_formula_irreducible F_empty, rfl⟩</span>
+<span class="cm">  by_cases hFl : F.length = 1</span>
+<span class="cm">  · obtain ⟨g, F_elems⟩ := List.length_eq_one.mp hFl</span>
+<span class="cm">    by_cases hg : g = 1</span>
+<span class="cm">    · let F&#39; : Formula G X := {elems := [], elems_in_X:=λ _ _ ↦ by contradiction}</span>
+<span class="cm">      have Fval : F.val = 1 := by unfold Formula.val; rw [F_elems, hg]; exact List.prod_singleton</span>
+<span class="cm">      have F&#39;val : F&#39;.val = 1 := by unfold Formula.val; rw [show F&#39;.elems = [] by rfl]; rfl</span>
+<span class="cm">      refine ⟨F&#39;, empty_formula_irreducible (show F&#39;.elems = [] by rfl), ?_⟩</span>
+<span class="cm">      rw [Fval, F&#39;val]</span>
+<span class="cm">    push_neg at hg</span>
+<span class="cm">    exact ⟨F, single_formula_irreducible ⟨g, hg, F_elems⟩, rfl⟩</span>
+<span class="cm">  push_neg at hFl</span>
+<span class="cm">  have lt_one : 1 &lt; F.length := by</span>
+<span class="cm">    have lt_zero := Nat.zero_lt_of_ne_zero hFl_0</span>
+<span class="cm">    exact Nat.lt_of_le_of_ne lt_zero (id (Ne.symm hFl))</span>
+
+<span class="cm">  sorry</span>
+
+<span class="cm">/- Fonction recursive qui casse une liste en pairs. Preuve par induction sur les listes. -/</span>
+
+<span class="cm">def irre (l : List ℤ) :=</span>
+<span class="cm">  let rec aux (l : List ℤ) (acc : List ℤ) :=</span>
+<span class="cm">    match l with</span>
+<span class="cm">    | [] =&gt; acc</span>
+<span class="cm">    | hd::[] =&gt; if hd = 0 then acc else acc.concat hd</span>
+<span class="cm">    | hd1::hd2::tl =&gt;</span>
+<span class="cm">      if hd1 + hd2 = 0 then aux tl acc</span>
+<span class="cm">      else if hd1 = 0 then aux (hd2::tl) acc</span>
+<span class="cm">      else if hd2 = 0 then aux (hd1::tl) acc</span>
+<span class="cm">      else aux (hd2::tl) (acc.concat hd1)</span>
+<span class="cm">  aux l []</span>
+
+
+<span class="cm">example (l : List ℤ) (z : ℤ) (h : irre l = l) : irre (l.tail) = l.tail := by</span>
+<span class="cm">  induction l with</span>
+<span class="cm">  | nil =&gt; sorry</span>
+<span class="cm">  | cons hd tl h2 =&gt;</span>
+<span class="cm">    rw [show (hd :: tl).tail = tl by rfl]</span>
+
+<span class="cm">    sorry</span>
+
+<span class="cm">example (l : List ℤ) :</span>
+<span class="cm">  if h : 1 &lt; (irre l).length then ∀ (i : Fin (irre l).length), ((irre l).get i) * ((irre l).get (i + {val:=1, isLt:=h})) ≠ 1</span>
+<span class="cm">  else if h : (irre l).length = 1 then (irre l).get {val:=0, isLt:=by rw[h]; exact Nat.zero_lt_one} ≠ 1</span>
+<span class="cm">  else l = [] := by</span>
+<span class="cm">  induction l with</span>
+<span class="cm">  | nil =&gt;</span>
+<span class="cm">    split</span>
+<span class="cm">    · contradiction</span>
+<span class="cm">    next h =&gt;</span>
+<span class="cm">      push_neg at h</span>
+<span class="cm">      split</span>
+<span class="cm">      · contradiction</span>
+<span class="cm">      rfl</span>
+<span class="cm">  | cons hd tl h =&gt;</span>
+<span class="cm">    let l&#39; := hd::tl</span>
+<span class="cm">    split at h</span>
+<span class="cm">    next h_length =&gt;</span>
+<span class="cm">      sorry</span>
+<span class="cm">    split at h</span>
+<span class="cm">    next h_length =&gt;</span>
+<span class="cm">      split</span>
+<span class="cm">      · next h_contra =&gt;</span>
+<span class="cm">        sorry</span>
+<span class="cm">      sorry</span>
+
+<span class="cm">    --rw [show hd::tl = l&#39; by rfl]</span>
+<span class="cm">    sorry</span>
+
+<span class="cm">/- def irre (l : List ℤ) :=</span>
+<span class="cm">  let f (acc : List ℤ × ℤ) (z : ℤ) := if acc.2 + z = 0 then (acc.1, z) else (acc.1.concat acc.2, z)</span>
+<span class="cm">  if h : l ≠ [] then</span>
+<span class="cm">    let acc := (l.tail.foldl f ([], l.head h))</span>
+<span class="cm">    if l.get {val:=l.length - 1, isLt:=by sorry} + acc.2 = 0 then acc.1</span>
+<span class="cm">    else acc.1.concat acc.2</span>
+<span class="cm">  else [] -/</span>
+
+<span class="cm">#eval irre [1, 2, -1, -3, 3] -/</span>
+</span></pre></article></body></html>
