@@ -139,7 +139,7 @@ theorem free_acyclic_iff : free_family X ↔ (CayleyGraph X).Acyclic := by
   intro F F_len F_irr
   by_contra F_val_eq_1
   specialize h 1 F ⟨F_len, F_irr⟩
-  rw [F_val_eq_1, show (1 : G) * 1 = 1 by exact Units.instMulOneClass.proof_1] at h
+  rw [F_val_eq_1, show (1 : G) * 1 = 1 by exact Units.instOneUnits.proof_1] at h
   contradiction
 
 theorem tree_free_iff : is_free_group G ↔ (∃ (X : Set G), (CayleyGraph X).is_tree) := by

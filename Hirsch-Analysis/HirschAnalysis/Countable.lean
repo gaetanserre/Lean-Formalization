@@ -283,7 +283,7 @@ Let A and E two sets such that E is uncountable. If it exists a surjection from 
 lemma uncountable_trans {u v : Type} (A : Set u) {E : Set v} (h : ¬countable E) : (∃ (f : u → v), SurjOn f A E) → ¬countable A := by
   intro exists_surj
   rcases exists_surj with ⟨f, f_surj⟩
-  by_contra h_countable; push_neg at h_countable
+  by_contra h_countable
   rcases h_countable with ⟨g, g_surj⟩
   have fg_surj_N_E : SurjOn (f ∘ g) univ E := by {
     intro e e_in_E
