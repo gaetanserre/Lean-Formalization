@@ -2,11 +2,12 @@ import os
 
 # List all directories in the current directory
 PROJECTS_NAME = os.listdir()
+print_blue = lambda s: print("\033[94m" + s + "\033[0m")
 
 for project in PROJECTS_NAME:
     current_dir = os.getcwd()
     if os.path.isdir(project) and not project.startswith("."):
-        print("Current Lean project:", project)
+        print_blue(f"Current Lean project: {project}")
         os.chdir(project)
         project = project.replace("-", "")
         # Get path to all Lean files
