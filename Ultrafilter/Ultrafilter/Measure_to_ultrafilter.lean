@@ -8,7 +8,7 @@ set_option maxHeartbeats 1000000
 set_option trace.Meta.Tactic.simp.rewrite true
 
 /-
-Here, we show that a finitely additive {0, 1}-measure defines a ultrafilter.
+Here, we show that a finitely additive {0, 1}-measure defines an ultrafilter.
 -/
 
 variable {α : Type} {Ω : Set α}
@@ -160,7 +160,7 @@ lemma complement (m : finitely_additive_measure Ω) : ∀ A ⊆ Ω, Pxor (A ∈ 
   rw [notin_imp_zero m A_ss A_notin, notin_imp_zero m (Set.diff_subset Ω A) ΩA_notin, show 0 + 0 = 0 by rfl, measure_one] at disjoint_add
   contradiction
 
--- The previous lemmas allow to implement a ultrafilter given only a finitely additive {0, 1}-measure.
+-- The previous lemmas allow to implement an ultrafilter given only a finitely additive {0, 1}-measure.
 variable (m : finitely_additive_measure Ω)
 def U : ultrafilter Ω := {
   sets := measure_ultrafilter m

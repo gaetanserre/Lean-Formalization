@@ -8,7 +8,7 @@ set_option maxHeartbeats 1000000
 set_option trace.Meta.Tactic.simp.rewrite true
 
 /-
-Here, we show that the `ultrafilter_measure`, which is the indicator function over a ultrafilter, defines a finitely additive {0, 1}-measure.
+Here, we show that the `ultrafilter_measure`, which is the indicator function over an ultrafilter, defines a finitely additive {0, 1}-measure.
 -/
 
 variable {α : Type} {X : Set α}
@@ -137,7 +137,7 @@ lemma one_univ (U : ultrafilter X) : ultrafilter_measure U X = 1 := by
   have := U.univ_sets
   contradiction
 
--- The previous lemmas allow to implement a finitely additive {0, 1}-measure given only a ultrafilter.
+-- The previous lemmas allow to implement a finitely additive {0, 1}-measure given only an ultrafilter.
 variable (U : ultrafilter X)
 noncomputable def m : finitely_additive_measure X := {
   f := ultrafilter_measure U
