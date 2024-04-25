@@ -1,3 +1,7 @@
+/-
+ - Created in 2024 by Gaëtan Serré
+ -/
+
 import CayleyGraph.FinGroup
 
 set_option maxHeartbeats 600000
