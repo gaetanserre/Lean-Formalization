@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html class="alectryon-standalone"><head><title>Defs.lean</title><meta charset="utf-8"><meta content="Alectryon" name="generator"><meta name="viewport" content="width=device-width, initial-scale=1"><link href="alectryon.css" rel="stylesheet"><link href="pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/IBM-type/0.5.4/css/ibm-type.min.css" integrity="sha512-sky5cf9Ts6FY1kstGOBHSybfKqdHR41M0Ldb0BjNiv3ifltoQIsg0zIaQ+wwdwgQ0w9vKFW7Js50lxH9vqNSSw==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/firacode/5.2.0/fira_code.min.css" integrity="sha512-MbysAYimH1hH2xYzkkMHB6MqxBqfP0megxsCLknbYqHVwXTCg9IqHbk+ZP/vnhO8UEW6PaXAkKe2vQ+SWACxxA==" crossorigin="anonymous" /><script src="alectryon.js"></script></head><body><article class="alectryon-root alectryon-windowed"><div class="alectryon-banner">Built with <a href="https://github.com/cpitclaudel/alectryon/">Alectryon</a>, running Lean4 v4.7.0. Bubbles (<span class="alectryon-bubble"></span>) indicate interactive fragments: hover for details, tap to reveal contents. Use <kbd>Ctrl+↑</kbd> <kbd>Ctrl+↓</kbd> to navigate, <kbd>Ctrl+🖱️</kbd> to focus. On Mac, use <kbd>⌘</kbd> instead of <kbd>Ctrl</kbd>.</div><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="c">/-</span>
+<span class="cm"> - Created in 2024 by Gaëtan Serré</span>
+<span class="cm"> -/</span>
+
+<span class="kn">import</span> Mathlib
+<span class="kn">open</span> Classical
+
+<span class="kd">def</span> Pxor (A B : <span class="kt">Prop</span>) := (A <span class="bp">∨</span> B) <span class="bp">∧</span> <span class="bp">¬</span>(A <span class="bp">∧</span> B)
+
+<span class="kd">structure</span> ultrafilter {α : <span class="kt">Type</span>} (X : Set α) where
+  sets : Set (Set α)
+  membership : <span class="bp">∀</span> A <span class="bp">∈</span> sets, A <span class="bp">⊆</span> X
+  univ_sets : X <span class="bp">∈</span> sets
+  sets_of_superset {x y} : x <span class="bp">∈</span> sets <span class="bp">→</span> y <span class="bp">⊆</span> X <span class="bp">→</span> x <span class="bp">⊆</span> y <span class="bp">→</span> y <span class="bp">∈</span> sets
+  inter_sets {x y} : x <span class="bp">∈</span> sets <span class="bp">→</span> y <span class="bp">∈</span> sets <span class="bp">→</span> x <span class="bp">∩</span> y <span class="bp">∈</span> sets
+
+  not_contains_empty : <span class="bp">∅</span> <span class="bp">∉</span> sets
+  complement : <span class="bp">∀</span> A <span class="bp">⊆</span> X, Pxor (A <span class="bp">∈</span> sets) (X <span class="bp">\</span> A <span class="bp">∈</span> sets)
+
+<span class="kd">structure</span> finitely_additive_measure {α : <span class="kt">Type</span>} (<span class="bp">Ω</span> : Set α) where
+  f : Set α <span class="bp">→</span> ℕ
+  zero_one : <span class="bp">∀</span> ⦃A⦄, A <span class="bp">⊆</span> <span class="bp">Ω</span> <span class="bp">→</span> f A <span class="bp">=</span> <span class="mi">0</span> <span class="bp">∨</span> f A <span class="bp">=</span> <span class="mi">1</span>
+  zero_empty : f <span class="bp">∅</span> <span class="bp">=</span> <span class="mi">0</span>
+  one_univ : f <span class="bp">Ω</span> <span class="bp">=</span> <span class="mi">1</span>
+  disjoint_add : <span class="bp">∀</span> ⦃A B⦄, A <span class="bp">⊆</span> <span class="bp">Ω</span> <span class="bp">→</span> B <span class="bp">⊆</span> <span class="bp">Ω</span> <span class="bp">→</span> A <span class="bp">∩</span> B <span class="bp">=</span> <span class="bp">∅</span> <span class="bp">→</span> f (A <span class="bp">∪</span> B) <span class="bp">=</span> f A <span class="bp">+</span> f B
+
+<span class="kd">noncomputable</span> <span class="kd">def</span> ultrafilter_measure {α : <span class="kt">Type</span>} {X : Set α} (U : ultrafilter X) := <span class="bp">λ</span> A <span class="bp">↦</span> <span class="k">if</span> A <span class="bp">∈</span> U.sets <span class="k">then</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
+
+<span class="kd">def</span> measure_ultrafilter {α : <span class="kt">Type</span>} {<span class="bp">Ω</span> : Set α} (m : finitely_additive_measure <span class="bp">Ω</span>) := {U <span class="bp">|</span> (U <span class="bp">⊆</span> <span class="bp">Ω</span>) <span class="bp">∧</span> (m.f U <span class="bp">=</span> <span class="mi">1</span>)}
+</span></pre></article></body></html>
