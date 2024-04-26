@@ -7,27 +7,22 @@ open Classical
 
 def Pxor (A B : Prop) := (A ∨ B) ∧ ¬(A ∧ B)
 
-structure ultrafilter {α : Type} (X : Set α) where
-  sets : Set (Set α)
-  membership : ∀ A ∈ sets, A ⊆ X
-  univ_sets : X ∈ sets
-  sets_of_superset {x y} : x ∈ sets → y ⊆ X → x ⊆ y → y ∈ sets
-  inter_sets {x y} : x ∈ sets → y ∈ sets → x ∩ y ∈ sets
-
-  not_contains_empty : ∅ ∉ sets
-  complement : ∀ A ⊆ X, Pxor (A ∈ sets) (X \ A ∈ sets)
-
-instance {α : Type} {X : Set α} : Membership (Set α) (ultrafilter X) :=
-  ⟨(· ∈ ultrafilter.sets ·)⟩
-
-
-structure finitely_additive_measure {α : Type} (Ω : Set α) where
+/--
+- A finitely additive {0, 1}-measure.
+-/
+structure finitely_additive_measure (α : Type*) where
   f : Set α → ℕ
-  zero_one : ∀ ⦃A⦄, A ⊆ Ω → f A = 0 ∨ f A = 1
+  zero_one : ∀ A, f A = 0 ∨ f A = 1
   zero_empty : f ∅ = 0
-  one_univ : f Ω = 1
-  disjoint_add : ∀ ⦃A B⦄, A ⊆ Ω → B ⊆ Ω → A ∩ B = ∅ → f (A ∪ B) = f A + f B
+  one_univ : f Set.univ = 1
+  disjoint_add : ∀ ⦃A B⦄, A ∩ B = ∅ → f (A ∪ B) = f A + f B
 
-noncomputable def ultrafilter_measure {α : Type} {X : Set α} (𝒰 : ultrafilter X) := λ A ↦ if A ∈ 𝒰 then 1 else 0
+/--
+- Indicator function over an ultrafilter
+-/
+noncomputable def ultrafilter_measure {α : Type*} (𝒰 : Ultrafilter α) := λ A ↦ if A ∈ 𝒰 then 1 else 0
 
-def measure_ultrafilter {α : Type} {Ω : Set α} (m : finitely_additive_measure Ω) := {A | (A ⊆ Ω) ∧ (m.f A = 1)}
+/--
+- A set of sets induced by a finitely additive {0, 1}-measure.
+-/
+def measure_ultrafilter {α : Type*} (m : finitely_additive_measure α) := {A | m.f A = 1}
