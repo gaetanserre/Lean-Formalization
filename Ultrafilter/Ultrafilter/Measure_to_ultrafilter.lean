@@ -162,7 +162,7 @@ lemma complement (m : finitely_additive_measure Ω) : ∀ A ⊆ Ω, Pxor (A ∈ 
 
 -- The previous lemmas allow to implement an ultrafilter given only a finitely additive {0, 1}-measure.
 variable (m : finitely_additive_measure Ω)
-def U : ultrafilter Ω := {
+def 𝒰 : ultrafilter Ω := {
   sets := measure_ultrafilter m
   membership := membership m
   univ_sets := univ_sets m

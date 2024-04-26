@@ -17,6 +17,10 @@ structure ultrafilter {α : Type} (X : Set α) where
   not_contains_empty : ∅ ∉ sets
   complement : ∀ A ⊆ X, Pxor (A ∈ sets) (X \ A ∈ sets)
 
+instance {α : Type} {X : Set α} : Membership (Set α) (ultrafilter X) :=
+  ⟨(· ∈ ultrafilter.sets ·)⟩
+
+
 structure finitely_additive_measure {α : Type} (Ω : Set α) where
   f : Set α → ℕ
   zero_one : ∀ ⦃A⦄, A ⊆ Ω → f A = 0 ∨ f A = 1
@@ -24,6 +28,6 @@ structure finitely_additive_measure {α : Type} (Ω : Set α) where
   one_univ : f Ω = 1
   disjoint_add : ∀ ⦃A B⦄, A ⊆ Ω → B ⊆ Ω → A ∩ B = ∅ → f (A ∪ B) = f A + f B
 
-noncomputable def ultrafilter_measure {α : Type} {X : Set α} (U : ultrafilter X) := λ A ↦ if A ∈ U.sets then 1 else 0
+noncomputable def ultrafilter_measure {α : Type} {X : Set α} (𝒰 : ultrafilter X) := λ A ↦ if A ∈ 𝒰 then 1 else 0
 
-def measure_ultrafilter {α : Type} {Ω : Set α} (m : finitely_additive_measure Ω) := {U | (U ⊆ Ω) ∧ (m.f U = 1)}
+def measure_ultrafilter {α : Type} {Ω : Set α} (m : finitely_additive_measure Ω) := {A | (A ⊆ Ω) ∧ (m.f A = 1)}
