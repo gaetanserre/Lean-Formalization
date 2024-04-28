@@ -12,14 +12,14 @@ for project in PROJECTS_NAME:
         project = project.replace("-", "")
         # Check if .lake is present in the directory
         if not os.path.exists(".lake"):
-            print(f".lake not found in {project}")
-            continue
-        # Get path to all Lean files
-        for file in os.listdir(project):
-            if file.endswith(".lean"):
-                lean_file = os.path.join(project, file)
-                # Call Alectryon on each Lean file
-                os.system(
-                    f"alectryon --frontend lean4 {lean_file} --lake lakefile.lean --webpage-style windowed --output-directory html"
-                )
+            print(f".lake not found in {project}. Please run `lake exe cache get` to continue.")
+        else:
+          # Get path to all Lean files
+          for file in os.listdir(project):
+              if file.endswith(".lean"):
+                  lean_file = os.path.join(project, file)
+                  # Call Alectryon on each Lean file
+                  os.system(
+                      f"alectryon --frontend lean4 {lean_file} --lake lakefile.lean --webpage-style windowed --output-directory html"
+                  )
     os.chdir(current_dir)
