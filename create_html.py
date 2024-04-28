@@ -10,6 +10,10 @@ for project in PROJECTS_NAME:
         print_blue(f"Current Lean project: {project}")
         os.chdir(project)
         project = project.replace("-", "")
+        # Check if .lake is present in the directory
+        if not os.path.exists(".lake"):
+            print(f".lake not found in {project}")
+            continue
         # Get path to all Lean files
         for file in os.listdir(project):
             if file.endswith(".lean"):
