@@ -54,7 +54,9 @@ lemma Z_countable : countable (univ : Set ℤ) := by
         exact (Nat.odd_iff_not_even.mp odd_n) h_if
       have coe : (n : ℤ) = 2 * (z - 1) + 1 := by {
         have coe_tmp : ((z - 1).toNat : ℤ) = z - 1 := Int.toNat_of_nonneg (Int.le_sub_one_of_lt h)
-        simpa [-Int.pred_toNat] using coe_tmp
+        rw [← coe_tmp]
+        rfl
+
       }
       rw [coe]
       calc (2 * (z - 1) + 1 - 1) / 2 + 1 = (2 * (z - 1)) / 2 + 1 := by simp
