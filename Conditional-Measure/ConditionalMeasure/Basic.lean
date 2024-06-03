@@ -65,6 +65,23 @@ theorem tower_property (hm1 : m1 ≤ mΩ) (hm2 : m2 ≤ m1) [SigmaFinite (μ.tri
   TODO: create the sub σ-algebra {∅, Ω}.
 -/
 
+def s : Set (Set Ω) := {∅, univ}
 
+lemma destruct_s : ∀ ⦃t : Set Ω⦄, t ∈ s → t = ∅ ∨ t = univ := fun _ ht ↦ ht
+
+def m_small : MeasurableSpace Ω := MeasurableSpace.generateFrom s
+
+example : ∀ (m : MeasurableSpace Ω), m_small ≤ m := by
+  intro m
+  apply MeasurableSpace.generateFrom_le
+  intro t ht
+  have := destruct_s ht
+  cases destruct_s ht with
+  | inl h =>
+    rw [h]
+    exact MeasurableSet.empty
+  | inr h =>
+    rw [h]
+    exact MeasurableSet.univ
 
 end ExpCond
