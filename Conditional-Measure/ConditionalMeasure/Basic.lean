@@ -72,10 +72,9 @@ lemma destruct_s : ∀ ⦃t : Set Ω⦄, t ∈ s → t = ∅ ∨ t = univ := fun
 def m_small : MeasurableSpace Ω := MeasurableSpace.generateFrom s
 
 example : ∀ (m : MeasurableSpace Ω), m_small ≤ m := by
-  intro m
+  intro _
   apply MeasurableSpace.generateFrom_le
-  intro t ht
-  have := destruct_s ht
+  intro _ ht
   cases destruct_s ht with
   | inl h =>
     rw [h]
