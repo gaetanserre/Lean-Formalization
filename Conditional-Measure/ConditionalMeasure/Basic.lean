@@ -2,7 +2,21 @@ import Mathlib.Probability.ConditionalExpectation
 import Mathlib.Probability.Kernel.Disintegration.Basic
 open MeasureTheory Set ProbabilityTheory
 
-section ProbTotalLaw
+lemma constant_ae_eq_imp_eq {α β : Type*} [MeasurableSpace α] {μ : Measure α}
+    (hμ : μ univ ≠ 0) (c d : β) (h_ae : (fun (_: α) ↦ c) =ᵐ[μ] (fun (_: α) ↦ d)) :
+    c = d := by
+  by_contra h
+  push_neg at h
+  have : μ ({(_ : α) | c = d} ∪ {(_ : α) | c = d}ᶜ) = 0 := by
+    have : μ {(_ : α) | c = d} = 0 := by
+      have : {(_ : α) | c = d} = ∅ := by exact subset_eq_empty (fun _ ↦ h) rfl
+      rw [this]
+      exact OuterMeasureClass.measure_empty μ
+    exact measure_union_null this h_ae
+  rw [← union_compl_self {(_ : α) | c = d}] at hμ
+  contradiction
+
+namespace ProbTotalLaw
 
 variable {Ω α: Type} [Nonempty Ω] [MeasurableSpace Ω] [MeasurableSpace α] [StandardBorelSpace Ω]
 
@@ -38,14 +52,11 @@ lemma apply_comp : μ.prod ν = μ ⊗ₘ (μ.prod ν).condKernel := by
 
 end ProbTotalLaw
 
-open MeasureTheory
+namespace ExpCond
 
 variable {Ω F : Type*}
-[Nonempty Ω]
 [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
 {m2 m₁ mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : Ω → F}
-
-namespace ExpCond
 
 /- example (hm₁ : m₁ ≤ mΩ) (m₂ : m2 ≤ m₁) [SigmaFinite (μ.trim hm₁)] :
     ∀ (s : Set Ω), MeasurableSet[m2] s → ∫ x in s, condexp m2 μ X x ∂μ
@@ -69,6 +80,10 @@ theorem tower_property {X : Ω → F} (hX : Integrable X μ) (hm₁ : m₁ ≤ m
 end ExpCond
 
 namespace ExpTotal
+
+variable {Ω F : Type*}
+[NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
+{m2 m₁ mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : Ω → F}
 
 open ExpCond
 
@@ -130,7 +145,9 @@ lemma measurableSet_S {s : Set Ω} : MeasurableSet[m_trivial] s → s ∈ S := b
   rw [this]
   exact S_apply.1
 
-lemma m_trivial_indep (μ : Measure Ω) [IsProbabilityMeasure μ] (m₁ : MeasurableSpace Ω) : Indep m₁ m_trivial μ := by
+variable [IsProbabilityMeasure μ]
+
+lemma m_trivial_indep (m₁ : MeasurableSpace Ω) : Indep m₁ m_trivial μ := by
   apply (Indep_iff m₁ m_trivial μ).mpr
   intro t1 t2 _ ht2
   cases destruct_S (measurableSet_S ht2) with
@@ -148,33 +165,51 @@ lemma m_trivial_indep (μ : Measure Ω) [IsProbabilityMeasure μ] (m₁ : Measur
 lemma condition_m_trivial [IsProbabilityMeasure μ] {X : Ω → F} (hm₁ : m₁ ≤ mΩ)
     (hf : StronglyMeasurable[m₁] X) [SigmaFinite (μ.trim (m_trivial_le mΩ))] :
     μ [X | m_trivial] =ᵐ[μ] (fun _ ↦ μ[X]) :=
-  condexp_indep_eq hm₁ (m_trivial_le mΩ) hf (m_trivial_indep μ m₁)
-
-lemma constant_ae_eq_imp_eq (hμ : μ univ ≠ 0) (c d : F) (h_ae : (fun (_: Ω) ↦ c) =ᵐ[μ] (fun (_: Ω) ↦ d)) : c = d := by
-  by_contra h
-  push_neg at h
-  have : μ ({(_ : Ω) | c = d} ∪ {(_ : Ω) | c = d}ᶜ) = 0 := by
-    have : μ {(_ : Ω) | c = d} = 0 := by
-      have : {(_ : Ω) | c = d} = ∅ := by exact subset_eq_empty (fun _ ↦ h) rfl
-      rw [this]
-      exact OuterMeasureClass.measure_empty μ
-    exact measure_union_null this h_ae
-  rw [← union_compl_self {(_ : Ω) | c = d}] at hμ
-  contradiction
+  condexp_indep_eq hm₁ (m_trivial_le mΩ) hf (m_trivial_indep m₁)
 
 theorem total_expectation_law [IsProbabilityMeasure μ] {X : Ω → F} (hX : Integrable X μ)
-    (hm₁ : m₁ ≤ mΩ) [SigmaFinite (μ.trim hm₁)] (hf : StronglyMeasurable[m₁] X) :
+    (hm₁ : m₁ ≤ mΩ) [SigmaFinite (μ.trim hm₁)] (hm : StronglyMeasurable[m₁] X) :
      μ[μ[X | m₁]] = μ[X] := by
-  have μ_univ_neq_0 : μ univ ≠ 0 := Ne.symm (NeZero.ne' (μ univ))
+  have μ_univ_neq_0 : μ univ ≠ 0 := (NeZero.ne' (μ univ)).symm
   apply constant_ae_eq_imp_eq μ_univ_neq_0
   have tower : μ[X|m_trivial] =ᵐ[μ] μ[μ[X|m₁]|m_trivial] := tower_property hX hm₁ (m_trivial_le m₁)
   have sMeasurable : StronglyMeasurable[m₁] (μ[X | m₁]) := stronglyMeasurable_condexp
-  filter_upwards [condition_m_trivial hm₁ sMeasurable, condition_m_trivial hm₁ hf, tower]
+  filter_upwards [condition_m_trivial hm₁ sMeasurable, condition_m_trivial hm₁ hm, tower]
     with a ha1 ha2 ha3
   rw [← ha1, ← ha3, ha2]
 
 end ExpTotal
 
-/-
-  TODO Total law of probability
--/
+namespace MeasureTheory
+
+variable {Ω F : Type*} [mΩ : MeasurableSpace Ω]
+    [MeasurableSpace F] [NormedAddCommGroup F]
+    [NormedSpace ℝ F] [CompleteSpace F]
+
+def gen_sigma (Y : Ω → F) := MeasurableSpace.generateFrom {S | ∃ (A : Set F), MeasurableSet A ∧ Y⁻¹' A = S}
+
+lemma sigma_generated_le {Y : Ω → F} (hY : Measurable Y) :
+    gen_sigma Y ≤ mΩ := by
+  apply MeasurableSpace.generateFrom_le
+  intro t ht
+  rcases ht with ⟨A, hA, ht⟩
+  rw [← ht]
+  exact hY hA
+
+noncomputable def Measure.condProb (μ : Measure Ω) (X Y : Ω → F) := μ[X | gen_sigma Y]
+
+end MeasureTheory
+
+namespace TotalProba
+
+variable {Ω F : Type*}
+[NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F] [MeasurableSpace F]
+{m2 m₁ mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y : Ω → F} (hY : Measurable Y)
+
+theorem total_expectation_law [IsProbabilityMeasure μ] (hX_i : Integrable X μ)
+    [SigmaFinite (μ.trim (sigma_generated_le hY))] (hm : StronglyMeasurable[gen_sigma Y] X) :
+    μ[X] = μ[μ.condProb X Y] := by
+  have := ExpTotal.total_expectation_law hX_i (sigma_generated_le hY) hm
+  exact (ExpTotal.total_expectation_law hX_i (sigma_generated_le hY) hm).symm
+
+end TotalProba
