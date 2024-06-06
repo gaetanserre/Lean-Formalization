@@ -1,3 +1,4 @@
+import Mathlib.Probability.ConditionalExpectation
 import Mathlib.Probability.Kernel.Disintegration.Basic
 open MeasureTheory Set ProbabilityTheory
 
@@ -40,42 +41,51 @@ end ProbTotalLaw
 open MeasureTheory
 
 variable {Ω F : Type*}
+[Nonempty Ω]
 [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-{m2 m1 mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : Ω → F}
+{m2 m₁ mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : Ω → F}
 
 namespace ExpCond
 
-/- example (hm1 : m1 ≤ mΩ) (hm2 : m2 ≤ m1) : m2 ≤ mΩ := by exact fun s a ↦ hm1 s (hm2 s a)
-
-example (hm1 : m1 ≤ mΩ) (hm2 : m2 ≤ m1) [SigmaFinite (μ.trim hm1)] :
-    ∀ (s : Set Ω), MeasurableSet[m2] s → ∫ x in s, μ[X | m2] x ∂μ
-    = ∫ x in s, μ[μ[X | m2] | m1] x ∂μ := by
+/- example (hm₁ : m₁ ≤ mΩ) (m₂ : m2 ≤ m₁) [SigmaFinite (μ.trim hm₁)] :
+    ∀ (s : Set Ω), MeasurableSet[m2] s → ∫ x in s, condexp m2 μ X x ∂μ
+    = ∫ x in s, condexp m₁ μ (condexp m2 μ X) x ∂μ := by
   intro s hs
-  exact (setIntegral_condexp hm1 (integrable_condexp) (hm2 s hs)).symm -/
+  exact (setIntegral_condexp hm₁ (integrable_condexp) (m₂ s hs)).symm -/
 
-theorem tower_property (hm1 : m1 ≤ mΩ) (hm2 : m2 ≤ m1) [SigmaFinite (μ.trim hm1)] :
-    μ[X | m2] =ᵐ[μ] μ[μ[X | m2] | m1] := by
-  have ae_mesu_m1 : AEStronglyMeasurable' m1 (μ[X | m2]) μ := by
-    have ae_mesu_m2 : AEStronglyMeasurable' m2 (μ[X | m2]) μ :=
-      StronglyMeasurable.aeStronglyMeasurable' (stronglyMeasurable_condexp)
-    exact AEStronglyMeasurable'.mono ae_mesu_m2 hm2
-  exact (condexp_of_aestronglyMeasurable' hm1 ae_mesu_m1 integrable_condexp).symm
+theorem tower_property {X : Ω → F} (hX : Integrable X μ) (hm₁ : m₁ ≤ mΩ) (m₂ : m2 ≤ m₁) [SigmaFinite (μ.trim (m₂.trans hm₁))] :
+    μ[X | m2] =ᵐ[μ] μ[μ[X | m₁] | m2] := by
+  have : SigmaFinite (μ.trim hm₁) := sigmaFiniteTrim_mono hm₁ m₂
+  apply ae_eq_condexp_of_forall_setIntegral_eq
+  · exact integrable_condexp
+  · intro s _ _
+    exact integrable_condexp.integrableOn
+  · intro s hs _
+    rw [setIntegral_condexp (m₂.trans hm₁) hX hs]
+    have hs2 : MeasurableSet[m₁] s := m₂ s hs
+    rw [setIntegral_condexp hm₁ hX hs2]
+  exact StronglyMeasurable.aeStronglyMeasurable' (stronglyMeasurable_condexp)
 
-/-
-  TODO: create the sub σ-algebra {∅, Ω}.
--/
+end ExpCond
 
-def s : Set (Set Ω) := {∅, univ}
+namespace ExpTotal
 
-lemma destruct_s : ∀ ⦃t : Set Ω⦄, t ∈ s → t = ∅ ∨ t = univ := fun _ ht ↦ ht
+open ExpCond
 
-def m_small : MeasurableSpace Ω := MeasurableSpace.generateFrom s
+def S : Set (Set Ω) := {∅, univ}
 
-example : ∀ (m : MeasurableSpace Ω), m_small ≤ m := by
+lemma destruct_S : ∀ ⦃t : Set Ω⦄, t ∈ S → t = ∅ ∨ t = univ := fun _ ht ↦ ht
+
+lemma S_apply : (∅ : Set Ω) ∈ S ∧ (univ : Set Ω) ∈ S :=
+  ⟨mem_insert ∅ {univ}, mem_insert_of_mem ∅ rfl⟩
+
+def m_trivial : MeasurableSpace Ω := MeasurableSpace.generateFrom S
+
+lemma m_trivial_le : ∀ (m : MeasurableSpace Ω), m_trivial ≤ m := by
   intro _
   apply MeasurableSpace.generateFrom_le
   intro _ ht
-  cases destruct_s ht with
+  cases destruct_S ht with
   | inl h =>
     rw [h]
     exact MeasurableSet.empty
@@ -83,4 +93,88 @@ example : ∀ (m : MeasurableSpace Ω), m_small ≤ m := by
     rw [h]
     exact MeasurableSet.univ
 
-end ExpCond
+lemma measurableSet_S {s : Set Ω} : MeasurableSet[m_trivial] s → s ∈ S := by
+  apply MeasurableSpace.generateFrom_induction
+  · simp only [imp_self, implies_true]
+  · exact S_apply.1
+  intro t ht
+  cases destruct_S ht with
+  | inl ht =>
+    rw [ht]
+    have : ∅ᶜ = (univ : Set Ω) := compl_empty
+    rw [compl_empty]
+    exact S_apply.2
+  | inr ht =>
+    rw [ht, compl_univ]
+    exact S_apply.1
+  intro f hf
+  by_cases h : ∃ n, f n = univ
+  · have : ⋃ i, f i = univ := by
+      apply iUnion_eq_univ_iff.mpr
+      intro x
+      rcases h with ⟨n, h⟩
+      use n
+      rw [h]
+      trivial
+    rw [this]
+    exact S_apply.2
+  push_neg at h
+  have : ⋃ i, f i = ∅ := by
+    have : ∀ n, f n = ∅ := by
+      intro n
+      specialize h n
+      cases destruct_S (hf n) with
+      | inr _ => contradiction
+      | inl _ => assumption
+    exact iUnion_eq_empty.mpr this
+  rw [this]
+  exact S_apply.1
+
+lemma m_trivial_indep (μ : Measure Ω) [IsProbabilityMeasure μ] (m₁ : MeasurableSpace Ω) : Indep m₁ m_trivial μ := by
+  apply (Indep_iff m₁ m_trivial μ).mpr
+  intro t1 t2 _ ht2
+  cases destruct_S (measurableSet_S ht2) with
+  | inl h =>
+    have : t1 ∩ t2 = ∅ := by
+      rw [h]
+      exact inter_empty t1
+    rw [this, h, OuterMeasureClass.measure_empty μ, mul_zero]
+  | inr h =>
+    have : t1 ∩ t2 = t1 := by
+      rw [h]
+      exact inter_univ t1
+    rw [this, h, measure_univ, mul_one]
+
+lemma condition_m_trivial [IsProbabilityMeasure μ] {X : Ω → F} (hm₁ : m₁ ≤ mΩ)
+    (hf : StronglyMeasurable[m₁] X) [SigmaFinite (μ.trim (m_trivial_le mΩ))] :
+    μ [X | m_trivial] =ᵐ[μ] (fun _ ↦ μ[X]) :=
+  condexp_indep_eq hm₁ (m_trivial_le mΩ) hf (m_trivial_indep μ m₁)
+
+lemma constant_ae_eq_imp_eq (hμ : μ univ ≠ 0) (c d : F) (h_ae : (fun (_: Ω) ↦ c) =ᵐ[μ] (fun (_: Ω) ↦ d)) : c = d := by
+  by_contra h
+  push_neg at h
+  have : μ ({(_ : Ω) | c = d} ∪ {(_ : Ω) | c = d}ᶜ) = 0 := by
+    have : μ {(_ : Ω) | c = d} = 0 := by
+      have : {(_ : Ω) | c = d} = ∅ := by exact subset_eq_empty (fun _ ↦ h) rfl
+      rw [this]
+      exact OuterMeasureClass.measure_empty μ
+    exact measure_union_null this h_ae
+  rw [← union_compl_self {(_ : Ω) | c = d}] at hμ
+  contradiction
+
+theorem total_expectation_law [IsProbabilityMeasure μ] {X : Ω → F} (hX : Integrable X μ)
+    (hm₁ : m₁ ≤ mΩ) [SigmaFinite (μ.trim hm₁)] (hf : StronglyMeasurable[m₁] X) :
+     μ[μ[X | m₁]] = μ[X] := by
+  have μ_univ_neq_0 : μ univ ≠ 0 := Ne.symm (NeZero.ne' (μ univ))
+  apply constant_ae_eq_imp_eq μ_univ_neq_0
+  have tower : μ[X|m_trivial] =ᵐ[μ] μ[μ[X|m₁]|m_trivial] := tower_property hX hm₁ (m_trivial_le m₁)
+  have sMeasurable : StronglyMeasurable[m₁] (μ[X | m₁]) := stronglyMeasurable_condexp
+  filter_upwards [condition_m_trivial hm₁ sMeasurable, condition_m_trivial hm₁ hf, tower]
+    with a ha1 ha2 ha3
+  rw [← ha1, ← ha3, ha2]
+
+end ExpTotal
+
+/-
+  TODO Total law of probability
+-/
