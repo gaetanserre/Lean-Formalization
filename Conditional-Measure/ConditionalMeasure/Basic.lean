@@ -252,59 +252,47 @@ variable {Ω F : Type*}
 /--
   The law of total probability using the law of total expectation.
 -/
-theorem total_probability_law [IsProbabilityMeasure μ] {A : Set Ω} (hA : MeasurableSet[gen_sigma Y] A)
+theorem total_probability_law
+    [IsProbabilityMeasure μ] {A : Set Ω} (hA : MeasurableSet[gen_sigma Y] A)
     [SigmaFinite (μ.trim (sigma_generated_le hY))] :
     (μ A).toReal = μ[μ.condProb A Y] := by
-
-
-  have hAmΩ : MeasurableSet A := by exact (sigma_generated_le hY) A hA
-
-  have hAE : StronglyMeasurable[gen_sigma Y] (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) := by
-    exact StronglyMeasurable.indicator stronglyMeasurable_const hA
-
-  have : ∫ a, A.indicator (fun x ↦ 1) a ∂μ = (μ A).toReal := by
-    rw [integral_indicator hAmΩ]
-    have t : 0 ≤ᵐ[μ.restrict A] (fun _ ↦ (1 : ℝ)) := by
-      suffices 0 ≤ (fun (_ : Ω) ↦ (1 : ℝ)) by sorry
-      intro x
-      simp only [Pi.zero_apply, zero_le_one]
-
-    have tt : AEStronglyMeasurable (fun _ ↦ (1 : ℝ)) (μ.restrict A) := by sorry
-
-    rw [integral_eq_lintegral_of_nonneg_ae t tt, ofReal_one, set_lintegral_one A]
-
-  have hI : HasFiniteIntegral (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) μ := by
-    unfold HasFiniteIntegral
-    have : ∀ a, ‖A.indicator (fun (_ : Ω) ↦ (1 : ℝ)) a‖₊ = A.indicator (fun (_ : Ω) ↦ (1 : ℝ≥0∞)) a := by
-      intro a
-      by_cases ha : a ∈ A
-      · rw [indicator_of_mem ha fun x ↦ 1, indicator_of_mem ha fun x ↦ 1, nnnorm_one]
-        rfl
-      rw [indicator_of_not_mem ha fun x ↦ 1, indicator_of_not_mem ha fun x ↦ 1, nnnorm_zero]
-      rfl
-    simp_rw [this]
-    calc ∫⁻ a, A.indicator (fun x ↦ 1) a ∂μ = ∫⁻ a in A, 1 ∂μ :=
-      lintegral_indicator (fun x ↦ 1) hAmΩ
-    _ = μ A := set_lintegral_one A
-    _ < ⊤ := measure_lt_top μ A
-
-  have hAEmΩ : AEStronglyMeasurable (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) μ := by
-    suffices StronglyMeasurable (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) by
-      exact StronglyMeasurable.aestronglyMeasurable this
-    exact StronglyMeasurable.mono hAE (sigma_generated_le hY)
-
-  have : Integrable (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) μ := ⟨hAEmΩ, hI⟩
-
-  have := ExpTotal.total_expectation_law this (sigma_generated_le hY) hAE
-
+  have hAmΩ : MeasurableSet A := (sigma_generated_le hY) A hA
   unfold Measure.condProb
-  rw [this]
-
-
-  sorry
-/- theorem total_expectation_law [IsProbabilityMeasure μ] (A : Set Ω)
-    [SigmaFinite (μ.trim (sigma_generated_le hY))] (hm : StronglyMeasurable[gen_sigma Y] X) :
-    (μ A).toReal = μ[μ.condProb A Y] :=
-  (ExpTotal.total_expectation_law hX_i (sigma_generated_le hY) hm).symm -/
+  have total_exp : ∫ x, (μ[A.indicator fun _ ↦ (1 : ℝ)|gen_sigma Y]) x ∂μ
+      = μ[A.indicator (fun x ↦ 1)] := by
+    have hI : HasFiniteIntegral (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) μ := by
+      unfold HasFiniteIntegral
+      have rmv_norm : ∀ a, ‖A.indicator (fun (_ : Ω) ↦ (1 : ℝ)) a‖₊ =
+          A.indicator (fun (_ : Ω) ↦ (1 : ℝ≥0∞)) a := by
+        intro a
+        by_cases ha : a ∈ A
+        · rw [indicator_of_mem ha fun _ ↦ 1, indicator_of_mem ha fun _ ↦ 1, nnnorm_one]
+          rfl
+        rw [indicator_of_not_mem ha fun _ ↦ 1, indicator_of_not_mem ha fun _ ↦ 1, nnnorm_zero]
+        rfl
+      simp_rw [rmv_norm]
+      calc ∫⁻ a, A.indicator (fun _ ↦ 1) a ∂μ = ∫⁻ _ in A, 1 ∂μ :=
+        lintegral_indicator (fun _ ↦ 1) hAmΩ
+      _ = μ A := set_lintegral_one A
+      _ < ⊤ := measure_lt_top μ A
+    have hAE : StronglyMeasurable[gen_sigma Y] (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) :=
+      StronglyMeasurable.indicator stronglyMeasurable_const hA
+    have hAEmΩ : AEStronglyMeasurable (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) μ := by
+      suffices StronglyMeasurable (A.indicator (fun (_ : Ω) ↦ (1 : ℝ))) by
+        exact StronglyMeasurable.aestronglyMeasurable this
+      exact StronglyMeasurable.mono hAE (sigma_generated_le hY)
+    exact ExpTotal.total_expectation_law ⟨hAEmΩ, hI⟩ (sigma_generated_le hY) hAE
+  rw [total_exp]
+  have integral_A : ∫ a, A.indicator (fun x ↦ 1) a ∂μ = (μ A).toReal := by
+    rw [integral_indicator hAmΩ]
+    have ae_pos : 0 ≤ᵐ[μ.restrict A] (fun _ ↦ (1 : ℝ)) := by
+      suffices 0 ≤ (fun (_ : Ω) ↦ (1 : ℝ)) by exact ae_of_all (μ.restrict A) this
+      intro _
+      simp only [Pi.zero_apply, zero_le_one]
+    rw [
+      integral_eq_lintegral_of_nonneg_ae ae_pos aestronglyMeasurable_const,
+      ofReal_one, set_lintegral_one A
+    ]
+  rw [integral_A]
 
 end TotalProba
