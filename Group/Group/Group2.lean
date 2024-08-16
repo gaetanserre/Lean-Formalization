@@ -11,7 +11,52 @@ open Set Function
 
 variable {α : Type} {A : Set α} (hA : A.Infinite)
 
-example : (A ×ˢ A).Infinite := Infinite.prod_left hA hA.nonempty
+namespace Group
+
+noncomputable def bijection {α β : Type*} [Group α] (f : β → α) (hf : f.Bijective) : Group β := by
+  have f_inv_nonempty : {(g : α → β) | LeftInverse g f ∧ RightInverse g f}.Nonempty :=
+    bijective_iff_has_inverse.mp hf
+  let f_inv := f_inv_nonempty.some
+  have hf_inv1 : ∀ a, f_inv (f a) = a := fun a ↦ f_inv_nonempty.some_mem.1 a
+  have hf_inv2 : ∀ a, f (f_inv a) = a := fun a ↦ f_inv_nonempty.some_mem.2 a
+
+  let _ : One β := {one := f_inv 1}
+  let _ : HMul β β β := {hMul := fun a b ↦ f_inv (f a * f b)}
+  let _ : Inv β := {inv := fun a ↦ f_inv (f a)⁻¹}
+
+  exact {
+    mul := fun a b ↦ f_inv (f a * f b)
+    mul_assoc := by
+      intro a b c
+      rw [show a * b = f_inv (f a * f b) by rfl]
+      rw [show b * c = f_inv (f b * f c) by rfl]
+      rw [show f_inv (f a * f b) * c = f_inv (f (f_inv (f a * f b)) * f c) by rfl]
+      rw [show a * f_inv (f b * f c) = f_inv (f a * (f (f_inv (f b * f c)))) by rfl]
+      repeat rw [hf_inv2]
+      suffices f a * f b * f c = f a * (f b * f c) by exact congrArg f_inv this
+      exact mul_assoc (f a) (f b) (f c)
+    one_mul := by
+      intro a
+      rw [show 1 * a = f_inv (f 1 * f a) by rfl]
+      rw [show (1 : β) = f_inv 1 by rfl]
+      rw [hf_inv2, LeftCancelMonoid.one_mul]
+      exact hf_inv1 a
+    mul_one := by
+      intro a
+      rw [show a * 1 = f_inv (f a * f 1) by rfl]
+      rw [show (1 : β) = f_inv 1 by rfl]
+      rw [hf_inv2, LeftCancelMonoid.mul_one]
+      exact hf_inv1 a
+    inv := fun a ↦ f_inv (f a)⁻¹
+    mul_left_inv := by
+      intro a
+      rw [show a⁻¹ = f_inv (f a)⁻¹ by rfl]
+      rw [show f_inv (f a)⁻¹ * a = f_inv (f (f_inv (f a)⁻¹) * f a) by rfl]
+      rw [hf_inv2, inv_mul_self]
+      rfl
+  }
+
+end Group
 
 namespace Set
 
@@ -21,8 +66,6 @@ def fin_powerset {α : Type} (A : Set α) := {S | S ∈ 𝒫 A ∧ S.Finite}
 def symm_diff {α : Type} (A B : Set α) := (A ∩ Bᶜ) ∪ (Aᶜ ∩ B)
 
 end Set
-
-theorem card_fin_powerset : ∃ (f : A → A.fin_powerset), f.Bijective := by sorry
 
 lemma symm_diff_mem {C D : A.fin_powerset} : C.1.symm_diff D.1 ∈ A.fin_powerset :=
   ⟨
@@ -127,26 +170,10 @@ instance : Group A.fin_powerset where
     unfold symm_diff
     rw [inter_compl_self, compl_inter_self, empty_union]
 
+theorem card_fin_powerset : ∃ (f : A → A.fin_powerset), f.Bijective := by sorry
 
 lemma f_nonempty : {(f : A → A.fin_powerset) | Bijective f}.Nonempty := card_fin_powerset
 
 noncomputable def f : A → A.fin_powerset := f_nonempty.some
 
-lemma f_mem : f ∈ {(f : A → A.fin_powerset) | Bijective f} := f_nonempty.some_mem
-
-lemma f_has_inv : ∃ (g : A.fin_powerset → A), LeftInverse g f ∧ RightInverse g f :=
-  bijective_iff_has_inverse.mp f_mem
-
-lemma f_inv_nonempty : {(g : A.fin_powerset → A) | LeftInverse g f ∧ RightInverse g f}.Nonempty :=
-  f_has_inv
-
-noncomputable def f_inv : A.fin_powerset → A := f_inv_nonempty.some
-
-noncomputable instance : HMul A A A where
-  hMul := fun a b ↦ f_inv (f a * f b)
-
-noncomputable instance : One A where
-  one := f_inv 1
-
-noncomputable instance : Inv A.fin_powerset where
-  inv := fun a ↦ f_inv (f a)⁻¹
+noncomputable instance : Group A := Group.bijection f f_nonempty.some_mem
