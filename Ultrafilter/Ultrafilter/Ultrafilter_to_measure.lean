@@ -86,9 +86,9 @@ lemma finitely_additive (𝒰 : Ultrafilter α) {A B : Set α} : A ∩ B = ∅ �
         exact Set.mem_inter einXA einB
       }
       rw [simp_compl] at inter_sets
-      have : B \ A ⊆ B := Set.diff_subset B A
+      have : B \ A ⊆ B := Set.diff_subset
       have B_in : B ∈ 𝒰 := by {
-        exact 𝒰.sets_of_superset inter_sets (Set.diff_subset B A)
+        exact 𝒰.sets_of_superset inter_sets (Set.diff_subset)
       }
       exact B_notin B_in
   }
@@ -141,5 +141,5 @@ noncomputable def m (𝒰 : Ultrafilter α) : finitely_additive_measure α := {
   zero_one := zero_one 𝒰
   zero_empty := zero_empty 𝒰
   one_univ := one_univ 𝒰
-  disjoint_add := λ ⦃A B⦄ hAB ↦ finitely_additive 𝒰 hAB
+  disjoint_add := λ _ _ hAB ↦ finitely_additive 𝒰 hAB
 }

@@ -25,7 +25,7 @@ def CayleyGraph {G : Type*} [Fintype G] [FinGroup G] (X : Set G) : Graph G :=
     Acyclic := ∀ g, ∀ (F : Formula G X), 0 < F.length ∧ F.irreducible → g * F.val ≠ g
   }
 
-variable {G : Type*} [Fintype G] [FinGroup G]  [Inhabited G] (X : Set G)
+variable {G : Type*} [Fintype G] [FinGroup G] (X : Set G)
 variable (G' : Subgroup G)
 
 /--
@@ -76,7 +76,7 @@ example (g' : G') : (CayleyGraph X).Connected ↔ (group_action X g').Connected 
 
   rcases g'CG_connected (g1 * g'⁻¹) (g2 * g'⁻¹) g1_neq_g2_prod with ⟨F, F_len, F_val⟩
   rw [mul_assoc g1 ↑g'⁻¹ g', mul_assoc g2 ↑g'⁻¹ g'] at F_val
-  repeat rw [show ↑g'⁻¹ * ↑g' = (1 : G) by exact mul_left_inv _] at F_val
+  repeat rw [show ↑g'⁻¹ * ↑g' = (1 : G) by exact inv_mul_cancel _] at F_val
   rw [mul_one g1, mul_one g2] at F_val
   use F, F_len
 
@@ -88,7 +88,7 @@ example (g' : G') : (CayleyGraph X).Acyclic ↔ (group_action X g').Acyclic :=
       intro g'CG_acyclic g F ⟨F_len, F_irr⟩
       specialize g'CG_acyclic (g * g'⁻¹) F ⟨F_len, F_irr⟩
       rw [mul_assoc g ↑g'⁻¹ g'] at g'CG_acyclic
-      repeat rw [show ↑g'⁻¹ * ↑g' = (1 : G) by exact mul_left_inv _] at g'CG_acyclic
+      repeat rw [show ↑g'⁻¹ * ↑g' = (1 : G) by exact inv_mul_cancel _] at g'CG_acyclic
       rwa [mul_one g] at g'CG_acyclic
   )
 
@@ -108,7 +108,7 @@ theorem generative_connected_iff : generative_family X ↔ (CayleyGraph X).Conne
       have F_eq_nil : F.elems = [] := List.length_eq_zero.mp (Nat.eq_zero_of_le_zero h)
       have F_val_eq_1 : F.val = 1 := by unfold Formula.val; rw [F_eq_nil]; rfl
       rw [F_val_eq_1] at cancel_prod
-      rw [show g1 * 1 = g1 by exact LeftCancelMonoid.mul_one _] at cancel_prod
+      rw [show g1 * 1 = g1 by exact mul_one _] at cancel_prod
       exact g1_neq_g2 cancel_prod
     }
     exact ⟨F, ⟨F_length, cancel_prod⟩⟩
@@ -128,7 +128,7 @@ theorem generative_connected_iff : generative_family X ↔ (CayleyGraph X).Conne
   push_neg at hg
   rcases h 1 g hg.symm with ⟨F, _, F_val⟩
   use F
-  rwa [←LeftCancelMonoid.one_mul F.val]
+  rwa [←one_mul F.val]
 
 theorem free_acyclic_iff : free_family X ↔ (CayleyGraph X).Acyclic := by
   constructor
@@ -143,8 +143,10 @@ theorem free_acyclic_iff : free_family X ↔ (CayleyGraph X).Acyclic := by
   intro F F_len F_irr
   by_contra F_val_eq_1
   specialize h 1 F ⟨F_len, F_irr⟩
-  rw [F_val_eq_1, LeftCancelMonoid.one_mul 1] at h
+  rw [F_val_eq_1, one_mul 1] at h
   contradiction
+
+variable [Inhabited G]
 
 theorem tree_free_iff : is_free_group G ↔ (∃ (X : Set G), (CayleyGraph X).is_tree) := by
   constructor

@@ -7,10 +7,9 @@
 -/
 
 
-import Mathlib.Init.Set
-import Mathlib.Order.Filter.Basic
-import Mathlib.Topology.Basic
-import Mathlib.Tactic
+import Mathlib.Analysis.Normed.Field.Lemmas
+import Mathlib.Data.Nat.Factorization.Defs
+import Mathlib.NumberTheory.Padics.PadicVal.Basic
 
 open Set Filter Topology Classical
 

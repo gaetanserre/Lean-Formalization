@@ -39,20 +39,20 @@ noncomputable def bijection {α β : Type*} [Group α] (f : β → α) (hf : f.B
       intro a
       rw [show 1 * a = f_inv (f 1 * f a) by rfl]
       rw [show (1 : β) = f_inv 1 by rfl]
-      rw [hf_inv2, LeftCancelMonoid.one_mul]
+      rw [hf_inv2, one_mul]
       exact hf_inv1 a
     mul_one := by
       intro a
       rw [show a * 1 = f_inv (f a * f 1) by rfl]
       rw [show (1 : β) = f_inv 1 by rfl]
-      rw [hf_inv2, LeftCancelMonoid.mul_one]
+      rw [hf_inv2, mul_one]
       exact hf_inv1 a
     inv := fun a ↦ f_inv (f a)⁻¹
-    mul_left_inv := by
+    inv_mul_cancel := by
       intro a
       rw [show a⁻¹ = f_inv (f a)⁻¹ by rfl]
       rw [show f_inv (f a)⁻¹ * a = f_inv (f (f_inv (f a)⁻¹) * f a) by rfl]
-      rw [hf_inv2, inv_mul_self]
+      rw [hf_inv2, inv_mul_cancel]
       rfl
   }
 
@@ -162,7 +162,7 @@ instance : Group A.fin_powerset where
     unfold symm_diff
     rw [compl_empty, inter_univ, inter_empty, union_empty]
   inv := fun a ↦ a
-  mul_left_inv := by
+  inv_mul_cancel := by
     intro a
     refine SetCoe.ext ?_
     rw [show (a⁻¹ * a).1 = a.1.symm_diff a.1 by rfl]

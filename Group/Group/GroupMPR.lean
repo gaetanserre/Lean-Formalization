@@ -5,7 +5,7 @@
 
 import Mathlib.Order.WellFoundedSet
 
-set_option maxHeartbeats 1000000
+set_option maxHeartbeats 400000
 
 open Set
 
@@ -37,15 +37,17 @@ lemma no_inj_imp_group_union_right {B : Set α} [Group (A ∪ B).Elem]
   have inv_A : (injA a)⁻¹ * ((injA a) * (injB b₁)) = (injA a)⁻¹ * ((injA a) * (injB b₂) ) := by
     exact congrArg (HMul.hMul (injA a)⁻¹) (by ext; exact hf)
 
-  repeat rw [
+  rw [
     (mul_assoc _ _ _).symm,
-    inv_mul_self (injA a),
-    LeftCancelMonoid.one_mul _
+    inv_mul_cancel (injA a),
+    one_mul _,
+    (mul_assoc (injA a)⁻¹ (injA a) (injB b₂)).symm,
+    inv_mul_cancel (injA a),
+    one_mul
   ] at inv_A
 
   unfold injB at inv_A
-  simp only [Subtype.forall, Subtype.mk.injEq] at inv_A
-  exact SetCoe.ext inv_A
+  aesop
 
 variable (B : Set α) [LT B] (hB : WellFounded (fun (a b : B) ↦ a < b))
     (no_inj : ∀ (f : B → A), ¬ f.Injective)
@@ -59,24 +61,32 @@ def S [Group (A ∪ B).Elem] (a : A) :=
 instance : LT (B × B) where
   lt := Prod.Lex (· < ·) (· < ·)
 
-lemma S_WF [Group (A ∪ B).Elem] (a : A) : (S B a).IsWF := by
-  have univ_wf : univ.IsWF := WellFounded.onFun (WellFounded.prod_lex hB hB)
-  exact IsWF.mono univ_wf (fun _ _ => trivial)
+include no_inj
 
+omit [LT B] in
 lemma S_ne [Group (A ∪ B).Elem] (a : A) : (S B a).Nonempty := by
   obtain ⟨b, hb⟩ := no_inj_imp_group_union_right no_inj a
   let c : B := ⟨(injA a * injB b).1, hb⟩
   exact ⟨⟨b, c⟩, hb, rfl⟩
 
-noncomputable def f [Group (A ∪ B).Elem] :=
+include hB
+
+omit no_inj in
+lemma S_WF [Group (A ∪ B).Elem] (a : A) : (S B a).IsWF := by
+  have univ_wf : univ.IsWF := WellFounded.onFun (WellFounded.prod_lex hB hB)
+  exact IsWF.mono univ_wf (fun _ _ => trivial)
+
+noncomputable def f' [Group (A ∪ B).Elem] :=
   fun (a : A) ↦
     (WellFounded.min (S_WF B hB a) univ (nonempty_iff_univ_nonempty.1 (S_ne B no_inj a).to_subtype)).1
+
 
 /--
   **Main theorem**: Let `A` be any set. If there exists a set `B` such that the `<` relation over
   `B` is well-founded and that it exists a group structure on `A ∪ B`, then it exists a
   well-ordered `<` relation over `A`, i.e., it implies the *Well-ordering theorem*.
 -/
-theorem A_is_WF [Group (A ∪ B).Elem] : WellFounded (fun a b ↦ f B hB no_inj a < f B hB no_inj b) :=
-  @WellFounded.onFun A (B × B) (fun (a b : B × B) ↦ a < b) (f B hB no_inj)
+theorem A_is_WF [Group (A ∪ B).Elem] :
+    WellFounded (fun a b ↦ f' B hB no_inj a < f' B hB no_inj b) :=
+  @WellFounded.onFun A (B × B) (fun (a b : B × B) ↦ a < b) (f' B hB no_inj)
     (WellFounded.prod_lex hB hB)
