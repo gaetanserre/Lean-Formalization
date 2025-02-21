@@ -2,6 +2,7 @@
  - Created in 2024 by Gaëtan Serré
  -/
 
+import Mathlib.Analysis.Normed.Field.Lemmas
 import Ultrafilter.Defs
 
 set_option maxHeartbeats 1000000

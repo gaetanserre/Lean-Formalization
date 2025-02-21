@@ -2,7 +2,7 @@
  - Created in 2024 by Gaëtan Serré
  -/
 
-import Mathlib
+import Mathlib.Order.Filter.Ultrafilter.Defs
 open Classical
 
 def Pxor (A B : Prop) := (A ∨ B) ∧ ¬(A ∧ B)
