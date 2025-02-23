@@ -2,12 +2,13 @@
  - Created in 2024 by Gaëtan Serré
  -/
 
+import Mathlib.Algebra.Group.Subgroup.Defs
 import CayleyGraph.FinGroup
 
 set_option maxHeartbeats 600000
 
 structure Graph (G : Type*) where
-  Adj : G → G → Prop
+  Adj : Set (G × G)
   Connected : Prop
   Acyclic : Prop
 
@@ -17,7 +18,7 @@ end Graph
 
 def CayleyGraph {G : Type*} [Fintype G] [FinGroup G] (X : Set G) : Graph G :=
   {
-    Adj := λ g1 g2 ↦ ∃ (F : Formula G X), 0 < F.length ∧ g1 * F.val = g2
+    Adj := {(g1, g2) | ∃ g ∈ X, g1 * g = g2 ∨ g1 * g⁻¹ = g2}
     Connected := ∀ g1 g2, g1 ≠ g2 → ∃ (F : Formula G X), 0 < F.length ∧ g1 * F.val = g2
     /-
     For any node `g`, there is no path ((g, g1), ..., (gn, g)) from `g` to `g`. Paths are represented by irreducible Formulas of size >= 1. We use the irreducible property to avoid looking at such Formula: `∀ g' ∈ CG.X, g * [g', g'⁻¹].prod = g`. This kind of Formula gives a trivial path that leads `g` to itself, for any subset `X`. This does not represented a cycle, as reducible Formulas contain steps that cancel each other out in pairs.
@@ -47,15 +48,17 @@ The action of a Subgroup `G'` of `G` on the Cayley graph formed by `G` and `X`
 def group_action {G : Type*} [Fintype G] [FinGroup G] {G' : Subgroup G}
   (X : Set G) (g' : G') : Graph G :=
     {
-      Adj := λ g1 g2 ↦ (CayleyGraph X).Adj (g1 * g') (g2 * g')
+      Adj := {(g1, g2) | ∃ g ∈ X, g1 * g' * g = g2 * g' ∨ g1 * g' * g⁻¹ = g2 * g'}
       Connected := ∀ g1 g2, g1 ≠ g2 → ∃ (F : Formula G X), 0 < F.length ∧ g1 * g' * F.val = g2 * g'
       Acyclic := ∀ g, ∀ (F : Formula G X), 0 < F.length ∧ F.irreducible → g * g' * F.val ≠ g * g'
     }
 
+def CG := CayleyGraph X
+
 /-
 We show that our definition of graph action is consistent, that is, CG (G, X) is connected (acyclic) iff any resulting CG graph from our definition is connected (acyclic).
 -/
-example (g' : G') : (CayleyGraph X).Connected ↔ (group_action X g').Connected := by
+example (g' : G') : (CG X).Connected ↔ (group_action X g').Connected := by
   constructor
   · intro CG_connected
     intro g1 g2 g1_neq_g2
@@ -80,7 +83,7 @@ example (g' : G') : (CayleyGraph X).Connected ↔ (group_action X g').Connected 
   rw [mul_one g1, mul_one g2] at F_val
   use F, F_len
 
-example (g' : G') : (CayleyGraph X).Acyclic ↔ (group_action X g').Acyclic :=
+example (g' : G') : (CG X).Acyclic ↔ (group_action X g').Acyclic :=
   Iff.intro
   (λ CG_acyclic g F hF ↦ CG_acyclic (g * g') F hF)
   (
@@ -94,9 +97,7 @@ example (g' : G') : (CayleyGraph X).Acyclic ↔ (group_action X g').Acyclic :=
 
 -------- Equivalence between properties of Cayley graph and groups --------
 
-def CG := CayleyGraph X
-
-theorem generative_connected_iff : generative_family X ↔ (CayleyGraph X).Connected := by
+theorem generative_connected_iff : generative_family X ↔ (CG X).Connected := by
   constructor
   · intro h g1 g2 g1_neq_g2
     rcases h (g1⁻¹ * g2) with ⟨F, F_val⟩
@@ -130,11 +131,11 @@ theorem generative_connected_iff : generative_family X ↔ (CayleyGraph X).Conne
   use F
   rwa [←one_mul F.val]
 
-theorem free_acyclic_iff : free_family X ↔ (CayleyGraph X).Acyclic := by
+theorem free_acyclic_iff : free_family X ↔ (CG X).Acyclic := by
   constructor
   · intro h
     by_contra h_acyclic
-    rw [show (CayleyGraph X).Acyclic = ∀ g, ∀ (F : Formula G X), 0 < F.length ∧ F.irreducible → g * F.val ≠ g by rfl] at h_acyclic
+    rw [show (CG X).Acyclic = ∀ g, ∀ (F : Formula G X), 0 < F.length ∧ F.irreducible → g * F.val ≠ g by rfl] at h_acyclic
     push_neg at h_acyclic
     rcases h_acyclic with ⟨g, F, ⟨F_len, F_irr⟩, F_val⟩
     have F_val_eq_1 := mul_right_eq_self.mp F_val
@@ -146,9 +147,8 @@ theorem free_acyclic_iff : free_family X ↔ (CayleyGraph X).Acyclic := by
   rw [F_val_eq_1, one_mul 1] at h
   contradiction
 
-variable [Inhabited G]
-
-theorem tree_free_iff : is_free_group G ↔ (∃ (X : Set G), (CayleyGraph X).is_tree) := by
+theorem tree_free_iff [Inhabited G] :
+    is_free_group G ↔ (∃ (X : Set G), (CG X).is_tree) := by
   constructor
   · intro ⟨X, X_gen, X_free⟩
     exact ⟨X, (generative_connected_iff X).mp X_gen, (free_acyclic_iff X).mp X_free⟩

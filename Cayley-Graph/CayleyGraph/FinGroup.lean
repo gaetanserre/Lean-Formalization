@@ -2,8 +2,9 @@
  - Created in 2024 by Gaëtan Serré
  -/
 
-import Mathlib
-open Classical
+import Mathlib.Algebra.BigOperators.Group.List.Defs
+import Mathlib.Algebra.Group.Basic
+import Mathlib.Data.Fintype.Defs
 
 set_option maxHeartbeats 600000
 
@@ -30,7 +31,7 @@ variable {G : Type*} [Fintype G] [FinGroup G] [Inhabited G]
 
 def generative_family (X : Set G) := ∀ (g : G), ∃ (F : Formula G X), F.val = g
 
-def free_family (X : Set G) := ∀ (F : Formula G X), (h : 0 < F.length) → F.irreducible → F.val ≠ 1
+def free_family (X : Set G) := ∀ (F : Formula G X), 0 < F.length → F.irreducible → F.val ≠ 1
 
 def is_free_group (G : Type*) [Fintype G] [FinGroup G] [Inhabited G] := ∃ (X : Set G), generative_family X ∧ free_family X
 
